@@ -9,7 +9,7 @@ public class PBThread extends Thread{
     @Override
     public void run(){
         while(alive){
-            
+            //wait for ticks...
         }
     }
     public void tickBar(){

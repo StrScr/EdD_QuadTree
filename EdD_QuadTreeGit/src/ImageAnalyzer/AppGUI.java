@@ -6,6 +6,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JSpinner.DefaultEditor;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 public class AppGUI extends javax.swing.JFrame {
@@ -95,8 +96,9 @@ public class AppGUI extends javax.swing.JFrame {
         });
 
         sp_depth.setFont(new java.awt.Font("Tahoma", 1, 48)); // NOI18N
-        sp_depth.setModel(new javax.swing.SpinnerNumberModel(0, 0, 20, 1));
+        sp_depth.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1, 1));
         sp_depth.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        sp_depth.setEnabled(false);
 
         jLabel2.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -170,9 +172,9 @@ public class AppGUI extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel4)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(slider_tolerance, javax.swing.GroupLayout.PREFERRED_SIZE, 113, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(slider_tolerance, javax.swing.GroupLayout.PREFERRED_SIZE, 126, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, 33, Short.MAX_VALUE))
+                        .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, 20, Short.MAX_VALUE))
                     .addComponent(lb_tolerance, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -231,17 +233,43 @@ public class AppGUI extends javax.swing.JFrame {
             loader.addChoosableFileFilter(filter);
             if(loader.showOpenDialog(this)==JFileChooser.APPROVE_OPTION){
                 img = ImageIO.read(loader.getSelectedFile());
+                //Create backup Image
+                backup=new BufferedImage(img.getWidth(),img.getHeight(),BufferedImage.TYPE_INT_RGB);
+                for(int i=0; i<img.getHeight(); i++){
+                    for(int j=0; j<img.getWidth(); j++){
+                        backup.setRGB(j, i, img.getRGB(j, i));
+                    }
+                }
+                System.out.println("display");
+                //Display Image
                 grayify();
                 lb_image.setIcon(new ImageIcon(img.getScaledInstance(200, 200, 0)));
                 lb_image.setText("");
                 btn_save.setEnabled(true);
                 btn_contourize.setEnabled(true);
+                //Get MAX Tree Depth
+                int depth=0, small=img.getHeight();
+                if(img.getWidth()<small){
+                    small=img.getWidth();
+                }
+                while(small>1){
+                    if(small%2==0){
+                        small/=2;
+                    }else{
+                        small=(small/2)-1;
+                    }
+                    depth++;
+                }
+                //sp_depth.setModel(((SpinnerNumberModel)sp_depth.getModel()).);
+                sp_depth.setEnabled(true);
+                System.out.println("MAX Tree Depth: "+depth+".");
                 System.out.println("Image loaded succesfully.");
             }else{
                 System.out.println("Image load canceled.");
             }
         }catch(Exception e){
             System.out.println("IMAGE LOAD ERROR");
+            e.printStackTrace();
         }
     }//GEN-LAST:event_btn_loadActionPerformed
 
@@ -265,11 +293,24 @@ public class AppGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_btn_saveActionPerformed
 
     private void btn_contourizeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_contourizeActionPerformed
-        //TODO
+        System.out.println("Contourizing with tolerance "+slider_tolerance.getValue()+"...");
+        try{
+            QuadTree contour = new QuadTree(img);
+            //TODO
+        }catch(Exception e){
+            System.out.println("CONTOURIZE ERROR");
+        }
     }//GEN-LAST:event_btn_contourizeActionPerformed
 
     private void cb_filterItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cb_filterItemStateChanged
         if(img!=null){
+            //Restore From Backup
+            for(int i=0; i<img.getHeight(); i++){
+                for(int j=0; j<img.getWidth(); j++){
+                    img.setRGB(j, i, backup.getRGB(j, i));
+                }
+            }
+            //Re-display
             grayify();
             lb_image.setIcon(new ImageIcon(img.getScaledInstance(200, 200, 0)));
             lb_image.setText("");
@@ -290,82 +331,41 @@ public class AppGUI extends javax.swing.JFrame {
         if(!isGrayscale()){
             System.out.println("Gray-ifying through "+cb_filter.getSelectedItem().toString()+".");
             Color pixel;
-            pb_convert.setMaximum(img.getHeight()*img.getWidth());
-            pb_convert.setValue(0);
-            PBThread ticker=new PBThread(pb_convert);
-            ticker.start();
-            switch(cb_filter.getSelectedIndex()){
-                case 0://Lightness
-                    for(int i=0; i<img.getHeight(); i++){
-                        for(int j=0; j<img.getWidth(); j++){
-                            pixel=new Color(img.getRGB(j, i));
-                            int gPix=(getMax(pixel)+getMin(pixel))/2;
-                            pixel=new Color(gPix,gPix,gPix);
-                            img.setRGB(j, i, pixel.getRGB());
-                            //pb_convert.setValue(pb_convert.getValue()+1);
-                            ticker.tickBar();
-                        }
+            //pb_convert.setMaximum(img.getHeight()*img.getWidth());
+            //pb_convert.setValue(0);
+            //PBThread ticker=new PBThread(pb_convert);
+            //ticker.start();
+            for(int i=0; i<img.getHeight(); i++){
+                for(int j=0; j<img.getWidth(); j++){
+                    pixel=new Color(img.getRGB(j, i));
+                    int gPix;
+                    switch(cb_filter.getSelectedIndex()){
+                        case 0://Lightness
+                            gPix=(getMax(pixel)+getMin(pixel))/2;
+                            break;
+                        case 1://Average
+                            gPix=(pixel.getRed()+pixel.getGreen()+pixel.getBlue())/3;
+                            break;
+                        case 2://Luminosity
+                            gPix=(int)((0.21*pixel.getRed()) + (0.72*pixel.getGreen()) + (0.07*pixel.getBlue()));
+                            break;
+                        case 3://Red
+                            gPix=pixel.getRed();
+                            break;
+                        case 4://Green
+                            gPix=pixel.getGreen();
+                            break;
+                        default://Blue
+                            gPix=pixel.getBlue();
+                            break;
                     }
-                    break;
-                case 1://Average
-                    for(int i=0; i<img.getHeight(); i++){
-                        for(int j=0; j<img.getWidth(); j++){
-                            pixel=new Color(img.getRGB(j, i));
-                            int gPix=(pixel.getRed()+pixel.getGreen()+pixel.getBlue())/3;
-                            pixel=new Color(gPix,gPix,gPix);
-                            img.setRGB(j, i, pixel.getRGB());
-                            //pb_convert.setValue(pb_convert.getValue()+1);
-                            ticker.tickBar();
-                        }
-                    }
-                    break;
-                case 2://Luminosity
-                    for(int i=0; i<img.getHeight(); i++){
-                        for(int j=0; j<img.getWidth(); j++){
-                            pixel=new Color(img.getRGB(j, i));
-                            int gPix=(int)((0.21*pixel.getRed()) + (0.72*pixel.getGreen()) + (0.07*pixel.getBlue()));
-                            pixel=new Color(gPix,gPix,gPix);
-                            img.setRGB(j, i, pixel.getRGB());
-                            //pb_convert.setValue(pb_convert.getValue()+1);
-                            ticker.tickBar();
-                        }
-                    }
-                    break;
-                case 3://Red
-                    for(int i=0; i<img.getHeight(); i++){
-                        for(int j=0; j<img.getWidth(); j++){
-                            pixel=new Color(img.getRGB(j, i));
-                            pixel=new Color(pixel.getRed(),pixel.getRed(),pixel.getRed());
-                            img.setRGB(j, i, pixel.getRGB());
-                            //pb_convert.setValue(pb_convert.getValue()+1);
-                            ticker.tickBar();
-                        }
-                    }
-                    break;
-                case 4://Green
-                    for(int i=0; i<img.getHeight(); i++){
-                        for(int j=0; j<img.getWidth(); j++){
-                            pixel=new Color(img.getRGB(j, i));
-                            pixel=new Color(pixel.getGreen(),pixel.getGreen(),pixel.getGreen());
-                            img.setRGB(j, i, pixel.getRGB());
-                            //pb_convert.setValue(pb_convert.getValue()+1);
-                            ticker.tickBar();
-                        }
-                    }
-                    break;
-                default://Blue
-                    for(int i=0; i<img.getHeight(); i++){
-                        for(int j=0; j<img.getWidth(); j++){
-                            pixel=new Color(img.getRGB(j, i));
-                            pixel=new Color(pixel.getBlue(),pixel.getBlue(),pixel.getBlue());
-                            img.setRGB(j, i, pixel.getRGB());
-                            //pb_convert.setValue(pb_convert.getValue()+1);
-                            ticker.tickBar();
-                        }
-                    }
-                    break;
+                    pixel=new Color(gPix,gPix,gPix);
+                    img.setRGB(j, i, pixel.getRGB());
+                    //pb_convert.setValue(pb_convert.getValue()+1);
+                    //ticker.tickBar();
+                }
             }
-            ticker.kill();
+            //ticker.kill();
         }else{
             System.out.println("Image already in grayscale.");
         }
@@ -404,6 +404,39 @@ public class AppGUI extends javax.swing.JFrame {
             min=c.getBlue();
         }
         return min;
+    }
+    public boolean hasColorChange(BufferedImage quad){
+        boolean hasChange=false;
+        Color prev=new Color(quad.getRGB(0, 0)), next;
+        int tolerance=slider_tolerance.getValue();
+        for(int i=0; i<quad.getHeight(); i++){
+            for(int j=0; j<quad.getWidth(); j++){
+                next=new Color(img.getRGB(j, i));
+                if((prev.getRed()<(next.getRed()-tolerance)) || (prev.getRed()>(next.getRed()+tolerance))){
+                    hasChange=true;
+                    i=img.getHeight();
+                    j=img.getWidth();
+                }
+                prev=next;
+            }
+        }
+        prev=new Color(quad.getRGB(0,0));
+        for(int i=0; i<quad.getWidth(); i++){
+            for(int j=0; j<quad.getHeight(); j++){
+                next=new Color(img.getRGB(i, j));
+                if((prev.getRed()<(next.getRed()-tolerance)) || (prev.getRed()>(next.getRed()+tolerance))){
+                    hasChange=true;
+                    i=img.getWidth();
+                    j=img.getHeight();
+                }
+                prev=next;
+            }
+        }
+        return hasChange;
+    }
+    public BufferedImage countourize(){
+        //TODO
+        return null;
     }
     //</editor-fold>
     
@@ -464,5 +497,6 @@ public class AppGUI extends javax.swing.JFrame {
     
     //<editor-fold defaultstate="collapsed" desc="Custom Variables">
     BufferedImage img;
+    BufferedImage backup;
     //</editor-fold>
 }
