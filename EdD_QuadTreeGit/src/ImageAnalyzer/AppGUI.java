@@ -127,12 +127,11 @@ public class AppGUI extends javax.swing.JFrame {
 
         lb_tolerance.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         lb_tolerance.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lb_tolerance.setText("Tolerance: 1");
+        lb_tolerance.setText("Tolerance: 0");
 
         slider_tolerance.setMaximum(255);
-        slider_tolerance.setMinimum(1);
         slider_tolerance.setPaintLabels(true);
-        slider_tolerance.setValue(1);
+        slider_tolerance.setValue(0);
         slider_tolerance.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 slider_toleranceStateChanged(evt);
@@ -140,7 +139,7 @@ public class AppGUI extends javax.swing.JFrame {
         });
 
         jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        jLabel4.setText("1");
+        jLabel4.setText("0");
 
         jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel5.setText("255");
@@ -260,7 +259,7 @@ public class AppGUI extends javax.swing.JFrame {
                     }
                     depth++;
                 }
-                //sp_depth.setModel(((SpinnerNumberModel)sp_depth.getModel()).);
+                sp_depth.setModel(new SpinnerNumberModel(0,0,depth,1));
                 sp_depth.setEnabled(true);
                 System.out.println("MAX Tree Depth: "+depth+".");
                 System.out.println("Image loaded succesfully.");
@@ -303,7 +302,7 @@ public class AppGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_btn_contourizeActionPerformed
 
     private void cb_filterItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cb_filterItemStateChanged
-        if(img!=null){
+        if(img!=null && evt.getStateChange()==1){
             //Restore From Backup
             for(int i=0; i<img.getHeight(); i++){
                 for(int j=0; j<img.getWidth(); j++){
