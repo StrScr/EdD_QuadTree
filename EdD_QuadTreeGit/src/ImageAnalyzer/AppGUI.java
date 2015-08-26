@@ -30,6 +30,10 @@ public class AppGUI extends javax.swing.JFrame {
         pb_convert = new javax.swing.JProgressBar();
         btn_about = new javax.swing.JButton();
         btn_contourize = new javax.swing.JButton();
+        lb_tolerance = new javax.swing.JLabel();
+        slider_tolerance = new javax.swing.JSlider();
+        jLabel4 = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Contour Creator");
@@ -119,6 +123,26 @@ public class AppGUI extends javax.swing.JFrame {
             }
         });
 
+        lb_tolerance.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        lb_tolerance.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lb_tolerance.setText("Tolerance: 1");
+
+        slider_tolerance.setMaximum(255);
+        slider_tolerance.setMinimum(1);
+        slider_tolerance.setPaintLabels(true);
+        slider_tolerance.setValue(1);
+        slider_tolerance.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                slider_toleranceStateChanged(evt);
+            }
+        });
+
+        jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        jLabel4.setText("1");
+
+        jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel5.setText("255");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -137,14 +161,19 @@ public class AppGUI extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(btn_about, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(cb_filter, javax.swing.GroupLayout.Alignment.LEADING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btn_contourize, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 160, Short.MAX_VALUE)
+                        .addComponent(sp_depth, javax.swing.GroupLayout.Alignment.LEADING))
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(cb_filter, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(sp_depth, javax.swing.GroupLayout.DEFAULT_SIZE, 141, Short.MAX_VALUE)
-                            .addComponent(btn_contourize, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addGap(0, 4, Short.MAX_VALUE)))
+                        .addComponent(jLabel4)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(slider_tolerance, javax.swing.GroupLayout.PREFERRED_SIZE, 113, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, 33, Short.MAX_VALUE))
+                    .addComponent(lb_tolerance, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -172,8 +201,16 @@ public class AppGUI extends javax.swing.JFrame {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(sp_depth, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(btn_contourize, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(lb_tolerance)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                        .addComponent(jLabel4)
+                                        .addComponent(jLabel5))
+                                    .addComponent(slider_tolerance, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(btn_contourize, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(btn_about))
                             .addComponent(jSeparator1))
                         .addContainerGap())))
@@ -242,6 +279,10 @@ public class AppGUI extends javax.swing.JFrame {
     private void btn_aboutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_aboutActionPerformed
         JOptionPane.showMessageDialog(this, "Hecho por Guillermo Lopez y Oscar Mejia.\n\nEstuctura de Datos.\nUNITEC TGU", "About This Software", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_btn_aboutActionPerformed
+
+    private void slider_toleranceStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_slider_toleranceStateChanged
+        lb_tolerance.setText("Tolerance: "+slider_tolerance.getValue());
+    }//GEN-LAST:event_slider_toleranceStateChanged
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="Custom Methods">
@@ -251,6 +292,8 @@ public class AppGUI extends javax.swing.JFrame {
             Color pixel;
             pb_convert.setMaximum(img.getHeight()*img.getWidth());
             pb_convert.setValue(0);
+            PBThread ticker=new PBThread(pb_convert);
+            ticker.start();
             switch(cb_filter.getSelectedIndex()){
                 case 0://Lightness
                     for(int i=0; i<img.getHeight(); i++){
@@ -259,7 +302,8 @@ public class AppGUI extends javax.swing.JFrame {
                             int gPix=(getMax(pixel)+getMin(pixel))/2;
                             pixel=new Color(gPix,gPix,gPix);
                             img.setRGB(j, i, pixel.getRGB());
-                            pb_convert.setValue(pb_convert.getValue()+1);
+                            //pb_convert.setValue(pb_convert.getValue()+1);
+                            ticker.tickBar();
                         }
                     }
                     break;
@@ -270,7 +314,8 @@ public class AppGUI extends javax.swing.JFrame {
                             int gPix=(pixel.getRed()+pixel.getGreen()+pixel.getBlue())/3;
                             pixel=new Color(gPix,gPix,gPix);
                             img.setRGB(j, i, pixel.getRGB());
-                            pb_convert.setValue(pb_convert.getValue()+1);
+                            //pb_convert.setValue(pb_convert.getValue()+1);
+                            ticker.tickBar();
                         }
                     }
                     break;
@@ -281,7 +326,8 @@ public class AppGUI extends javax.swing.JFrame {
                             int gPix=(int)((0.21*pixel.getRed()) + (0.72*pixel.getGreen()) + (0.07*pixel.getBlue()));
                             pixel=new Color(gPix,gPix,gPix);
                             img.setRGB(j, i, pixel.getRGB());
-                            pb_convert.setValue(pb_convert.getValue()+1);
+                            //pb_convert.setValue(pb_convert.getValue()+1);
+                            ticker.tickBar();
                         }
                     }
                     break;
@@ -291,7 +337,8 @@ public class AppGUI extends javax.swing.JFrame {
                             pixel=new Color(img.getRGB(j, i));
                             pixel=new Color(pixel.getRed(),pixel.getRed(),pixel.getRed());
                             img.setRGB(j, i, pixel.getRGB());
-                            pb_convert.setValue(pb_convert.getValue()+1);
+                            //pb_convert.setValue(pb_convert.getValue()+1);
+                            ticker.tickBar();
                         }
                     }
                     break;
@@ -301,7 +348,8 @@ public class AppGUI extends javax.swing.JFrame {
                             pixel=new Color(img.getRGB(j, i));
                             pixel=new Color(pixel.getGreen(),pixel.getGreen(),pixel.getGreen());
                             img.setRGB(j, i, pixel.getRGB());
-                            pb_convert.setValue(pb_convert.getValue()+1);
+                            //pb_convert.setValue(pb_convert.getValue()+1);
+                            ticker.tickBar();
                         }
                     }
                     break;
@@ -311,11 +359,13 @@ public class AppGUI extends javax.swing.JFrame {
                             pixel=new Color(img.getRGB(j, i));
                             pixel=new Color(pixel.getBlue(),pixel.getBlue(),pixel.getBlue());
                             img.setRGB(j, i, pixel.getRGB());
-                            pb_convert.setValue(pb_convert.getValue()+1);
+                            //pb_convert.setValue(pb_convert.getValue()+1);
+                            ticker.tickBar();
                         }
                     }
                     break;
             }
+            ticker.kill();
         }else{
             System.out.println("Image already in grayscale.");
         }
@@ -400,10 +450,14 @@ public class AppGUI extends javax.swing.JFrame {
     private javax.swing.JComboBox cb_filter;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JLabel lb_image;
+    private javax.swing.JLabel lb_tolerance;
     private javax.swing.JPanel panel_pic;
     private javax.swing.JProgressBar pb_convert;
+    private javax.swing.JSlider slider_tolerance;
     private javax.swing.JSpinner sp_depth;
     // End of variables declaration//GEN-END:variables
     //</editor-fold>
