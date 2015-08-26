@@ -96,7 +96,6 @@ public class AppGUI extends javax.swing.JFrame {
         jLabel2.setText("Tree Depth");
 
         pb_convert.setForeground(new java.awt.Color(102, 102, 102));
-        pb_convert.setValue(50);
 
         btn_about.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ImageAnalyzer/info_xsmall.png"))); // NOI18N
         btn_about.setText("About");
@@ -233,6 +232,8 @@ public class AppGUI extends javax.swing.JFrame {
         if(!isGrayscale()){
             System.out.println("Gray-ifying through "+cb_filter.getSelectedItem().toString()+".");
             Color pixel;
+            pb_convert.setMaximum(img.getHeight()*img.getWidth());
+            pb_convert.setValue(0);
             switch(cb_filter.getSelectedIndex()){
                 case 0://Lightness
                     for(int i=0; i<img.getHeight(); i++){
@@ -241,6 +242,7 @@ public class AppGUI extends javax.swing.JFrame {
                             int gPix=(getMax(pixel)+getMin(pixel))/2;
                             pixel=new Color(gPix,gPix,gPix);
                             img.setRGB(j, i, pixel.getRGB());
+                            pb_convert.setValue(pb_convert.getValue()+1);
                         }
                     }
                     break;
@@ -251,6 +253,7 @@ public class AppGUI extends javax.swing.JFrame {
                             int gPix=(pixel.getRed()+pixel.getGreen()+pixel.getBlue())/3;
                             pixel=new Color(gPix,gPix,gPix);
                             img.setRGB(j, i, pixel.getRGB());
+                            pb_convert.setValue(pb_convert.getValue()+1);
                         }
                     }
                     break;
@@ -261,6 +264,7 @@ public class AppGUI extends javax.swing.JFrame {
                             int gPix=(int)((0.21*pixel.getRed()) + (0.72*pixel.getGreen()) + (0.07*pixel.getBlue()));
                             pixel=new Color(gPix,gPix,gPix);
                             img.setRGB(j, i, pixel.getRGB());
+                            pb_convert.setValue(pb_convert.getValue()+1);
                         }
                     }
                     break;
@@ -270,6 +274,7 @@ public class AppGUI extends javax.swing.JFrame {
                             pixel=new Color(img.getRGB(j, i));
                             pixel=new Color(pixel.getRed(),pixel.getRed(),pixel.getRed());
                             img.setRGB(j, i, pixel.getRGB());
+                            pb_convert.setValue(pb_convert.getValue()+1);
                         }
                     }
                     break;
@@ -279,6 +284,7 @@ public class AppGUI extends javax.swing.JFrame {
                             pixel=new Color(img.getRGB(j, i));
                             pixel=new Color(pixel.getGreen(),pixel.getGreen(),pixel.getGreen());
                             img.setRGB(j, i, pixel.getRGB());
+                            pb_convert.setValue(pb_convert.getValue()+1);
                         }
                     }
                     break;
@@ -288,6 +294,7 @@ public class AppGUI extends javax.swing.JFrame {
                             pixel=new Color(img.getRGB(j, i));
                             pixel=new Color(pixel.getBlue(),pixel.getBlue(),pixel.getBlue());
                             img.setRGB(j, i, pixel.getRGB());
+                            pb_convert.setValue(pb_convert.getValue()+1);
                         }
                     }
                     break;
@@ -301,7 +308,7 @@ public class AppGUI extends javax.swing.JFrame {
         Color pix;
         for(int i=0; i<img.getHeight(); i++){
             for(int j=0; j<img.getWidth(); j++){
-                pix=new Color(img.getRGB(i, j));
+                pix=new Color(img.getRGB(j, i));
                 if(!(pix.getRed()==pix.getBlue() && pix.getBlue()==pix.getGreen())){
                     isGray=false;
                     i=img.getHeight();
