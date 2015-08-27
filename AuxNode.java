@@ -28,7 +28,7 @@ public interface AuxNode {
 
     //conseguir el cuadrante especificado
 
-    public AuxNode getQuadrant(Cuadrante nom);
+    public AuxNode getCuadrante(Cuadrante nom);
 
     // ¿es nodo?
 
