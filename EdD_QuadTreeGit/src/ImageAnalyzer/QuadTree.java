@@ -28,6 +28,12 @@ public class QuadTree{
     public void setQ3(QuadTree Q3) {
         this.Q3 = Q3;
     }
+    public QuadTree getQ4() {
+        return Q4;
+    }
+    public void setQ4(QuadTree Q4) {
+        this.Q4 = Q4;
+    }
     public BufferedImage getQuadrant() {
         return quadrant;
     }

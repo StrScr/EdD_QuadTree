@@ -239,7 +239,6 @@ public class AppGUI extends javax.swing.JFrame {
                         backup.setRGB(j, i, img.getRGB(j, i));
                     }
                 }
-                System.out.println("display");
                 //Display Image
                 grayify();
                 lb_image.setIcon(new ImageIcon(img.getScaledInstance(200, 200, 0)));
@@ -259,7 +258,7 @@ public class AppGUI extends javax.swing.JFrame {
                     }
                     depth++;
                 }
-                sp_depth.setModel(new SpinnerNumberModel(0,0,depth,1));
+                sp_depth.setModel(new SpinnerNumberModel(0,0,depth-1,1));
                 sp_depth.setEnabled(true);
                 System.out.println("MAX Tree Depth: "+depth+".");
                 System.out.println("Image loaded succesfully.");
@@ -295,9 +294,12 @@ public class AppGUI extends javax.swing.JFrame {
         System.out.println("Contourizing with tolerance "+slider_tolerance.getValue()+"...");
         try{
             QuadTree contour = new QuadTree(img);
-            //TODO
+            contourize(contour,(int)sp_depth.getValue());
+            System.out.println("Contourization succesful.");
+            generateImage(contour);
         }catch(Exception e){
             System.out.println("CONTOURIZE ERROR");
+            e.printStackTrace();
         }
     }//GEN-LAST:event_btn_contourizeActionPerformed
 
@@ -433,9 +435,69 @@ public class AppGUI extends javax.swing.JFrame {
         }
         return hasChange;
     }
-    public BufferedImage countourize(){
-        //TODO
-        return null;
+    public void contourize(QuadTree quad, int levels){
+        if(hasColorChange(quad.getQuadrant()) && levels>0){
+            //Determine Quadrant Dimensions
+            int x=quad.getQuadrant().getWidth(),y=quad.getQuadrant().getHeight();
+            if(x%2==0){
+                x/=2;
+            }else{
+                x=(x/2)-1;
+            }
+            if(y%2==0){
+                y/=2;
+            }else{
+                y=(y/2)-1;
+            }
+            //Make Top Left Quadrant
+            BufferedImage curImg;
+            quad.setQ1(new QuadTree(new BufferedImage(x,y,BufferedImage.TYPE_INT_RGB)));
+            curImg=quad.getQ1().getQuadrant();
+            for(int i=0; i<y; i++){
+                for(int j=0; j<x; j++){
+                    curImg.setRGB(j, i, quad.getQuadrant().getRGB(j, i));
+                }
+            }
+            //Make Top Right Quadrant
+            quad.setQ2(new QuadTree(new BufferedImage(x,y,BufferedImage.TYPE_INT_RGB)));
+            curImg=quad.getQ2().getQuadrant();
+            for(int i=0; i<y; i++){
+                for(int j=0; j<x; j++){
+                    curImg.setRGB(j, i, quad.getQuadrant().getRGB((x/2)+j, i));
+                }
+            }
+            //Make Bottom Left Quadrant
+            quad.setQ3(new QuadTree(new BufferedImage(x,y,BufferedImage.TYPE_INT_RGB)));
+            curImg=quad.getQ3().getQuadrant();
+            for(int i=0; i<y; i++){
+                for(int j=0; j<x; j++){
+                    curImg.setRGB(j, i, quad.getQuadrant().getRGB(j, (y/2)+i));
+                }
+            }
+            //Make Bottom Right Quadrant
+            quad.setQ4(new QuadTree(new BufferedImage(x,y,BufferedImage.TYPE_INT_RGB)));
+            curImg=quad.getQ4().getQuadrant();
+            for(int i=0; i<y; i++){
+                for(int j=0; j<x; j++){
+                    curImg.setRGB(j, i, quad.getQuadrant().getRGB((x/2)+j, (y/2)+i));
+                }
+            }
+            //Contourize Quadrants
+            contourize(quad.getQ1(),levels-1);
+            contourize(quad.getQ2(),levels-1);
+            contourize(quad.getQ3(),levels-1);
+            contourize(quad.getQ4(),levels-1);
+        }
+    }
+    public void generateImage(QuadTree contour){
+        //FINAL TODO
+        System.out.println("Generating image... TODO");
+        //Determine Image Size
+        System.out.println("Resulting image size: ???x???.");
+        //Build Image
+        System.out.println("Bulding Image...");
+        //Display Image
+        System.out.println("Generation succesful.");
     }
     //</editor-fold>
     
