@@ -332,10 +332,6 @@ public class AppGUI extends javax.swing.JFrame {
         if(!isGrayscale()){
             System.out.println("Gray-ifying through "+cb_filter.getSelectedItem().toString()+".");
             Color pixel;
-            //pb_convert.setMaximum(img.getHeight()*img.getWidth());
-            //pb_convert.setValue(0);
-            //PBThread ticker=new PBThread(pb_convert);
-            //ticker.start();
             for(int i=0; i<img.getHeight(); i++){
                 for(int j=0; j<img.getWidth(); j++){
                     pixel=new Color(img.getRGB(j, i));
@@ -362,11 +358,8 @@ public class AppGUI extends javax.swing.JFrame {
                     }
                     pixel=new Color(gPix,gPix,gPix);
                     img.setRGB(j, i, pixel.getRGB());
-                    //pb_convert.setValue(pb_convert.getValue()+1);
-                    //ticker.tickBar();
                 }
             }
-            //ticker.kill();
         }else{
             System.out.println("Image already in grayscale.");
         }
@@ -492,17 +485,9 @@ public class AppGUI extends javax.swing.JFrame {
     public void generateImage(QuadTree contour){
         System.out.println("Generating image...");
         //Determine Image Size
-        int depth=(int)sp_depth.getValue(), i=depth, j=i;
+        int depth=(int)sp_depth.getValue(), i=(int)sp_depth.getValue(), j=(int)sp_depth.getValue();
         int mersenne=(int)((Math.pow(2, depth))-1);
         int pieceW=img.getWidth(), pieceH=img.getHeight();
-        while(depth>0){
-            if(pieceW%2==0){
-                pieceW/=2;
-            }else{
-                pieceW=(pieceW/2)-1;
-            }
-            depth--;
-        }
         while(i>0){
             if(pieceW%2==0){
                 pieceW/=2;
@@ -541,14 +526,14 @@ public class AppGUI extends javax.swing.JFrame {
             for(int i=ystart; i<yfinish; i++){
                 canvas.setRGB(xstart+(xfinish-xstart)/2, i, Color.BLACK.getRGB());
             }
-            for(int i=ystart; i<yfinish; i++){
+            for(int i=xstart; i<xfinish; i++){
                 canvas.setRGB(i, ystart+(yfinish-ystart)/2, Color.BLACK.getRGB());
             }
             //Paint Quadrants
-            paintDivisors(ref.getQ1(),canvas,xstart,ystart,xfinish/2,yfinish/2);
-            paintDivisors(ref.getQ2(),canvas,xfinish/2,ystart,xfinish,yfinish/2);
-            paintDivisors(ref.getQ3(),canvas,xstart,yfinish/2,xfinish/2,yfinish);
-            paintDivisors(ref.getQ4(),canvas,xfinish/2,yfinish/2,xfinish,yfinish);
+            paintDivisors(ref.getQ1(),canvas,xstart,ystart,xstart+(xfinish-xstart)/2,ystart+(yfinish-ystart)/2);
+            paintDivisors(ref.getQ2(),canvas,xstart+(xfinish-xstart)/2,ystart,xfinish,ystart+(yfinish-ystart)/2);
+            paintDivisors(ref.getQ3(),canvas,xstart,ystart+(yfinish-ystart)/2,xstart+(xfinish-xstart)/2,yfinish);
+            paintDivisors(ref.getQ4(),canvas,xstart+(xfinish-xstart)/2,ystart+(yfinish-ystart)/2,xfinish,yfinish);
         }
     }
     //</editor-fold>
