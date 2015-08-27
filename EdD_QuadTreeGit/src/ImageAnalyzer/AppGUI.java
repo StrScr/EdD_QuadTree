@@ -406,7 +406,7 @@ public class AppGUI extends javax.swing.JFrame {
         for(int i=0; i<quad.getHeight(); i++){
             for(int j=0; j<quad.getWidth(); j++){
                 next=new Color(img.getRGB(j, i));
-                if((prev.getRed()<(next.getRed()-tolerance)) || (prev.getRed()>(next.getRed()+tolerance))){
+                if(!(prev.equals(next))){
                     hasChange=true;
                     i=img.getHeight();
                     j=img.getWidth();
@@ -414,16 +414,18 @@ public class AppGUI extends javax.swing.JFrame {
                 prev=next;
             }
         }
-        prev=new Color(quad.getRGB(0,0));
-        for(int i=0; i<quad.getWidth(); i++){
-            for(int j=0; j<quad.getHeight(); j++){
-                next=new Color(img.getRGB(i, j));
-                if((prev.getRed()<(next.getRed()-tolerance)) || (prev.getRed()>(next.getRed()+tolerance))){
-                    hasChange=true;
-                    i=img.getWidth();
-                    j=img.getHeight();
+        if(!hasChange){
+            prev=new Color(quad.getRGB(0,0));
+            for(int i=0; i<quad.getWidth(); i++){
+                for(int j=0; j<quad.getHeight(); j++){
+                    next=new Color(img.getRGB(i, j));
+                    if(!(prev.equals(next))){
+                        hasChange=true;
+                        i=img.getWidth();
+                        j=img.getHeight();
+                    }
+                    prev=next;
                 }
-                prev=next;
             }
         }
         return hasChange;
