@@ -490,14 +490,66 @@ public class AppGUI extends javax.swing.JFrame {
         }
     }
     public void generateImage(QuadTree contour){
-        //FINAL TODO
-        System.out.println("Generating image... TODO");
+        System.out.println("Generating image...");
         //Determine Image Size
-        System.out.println("Resulting image size: ???x???.");
+        int depth=(int)sp_depth.getValue(), i=depth, j=i;
+        int mersenne=(int)((Math.pow(2, depth))-1);
+        int pieceW=img.getWidth(), pieceH=img.getHeight();
+        while(depth>0){
+            if(pieceW%2==0){
+                pieceW/=2;
+            }else{
+                pieceW=(pieceW/2)-1;
+            }
+            depth--;
+        }
+        while(i>0){
+            if(pieceW%2==0){
+                pieceW/=2;
+            }else{
+                pieceW=(pieceW/2)-1;
+            }
+            i--;
+        }
+        while(j>0){
+            if(pieceH%2==0){
+                pieceH/=2;
+            }else{
+                pieceH=(pieceH/2)-1;
+            }
+            j--;
+        }
+        int Rwidth=(int) (pieceW*(Math.pow(2, depth))+mersenne), Rheight=(int) (pieceH*(Math.pow(2, depth))+mersenne);
+        System.out.println("Resulting image size: "+Rwidth+"x"+Rheight+".");
         //Build Image
         System.out.println("Bulding Image...");
+        BufferedImage build=new BufferedImage(Rwidth,Rheight,BufferedImage.TYPE_INT_RGB);
+        for(int g=0; g<Rheight; g++){
+            for(int h=0; h<Rwidth; h++){
+                build.setRGB(h, g, Color.white.getRGB());
+            }
+        }
+        paintDivisors(contour, build, 0, 0, build.getWidth(), build.getHeight());
         //Display Image
+        img=build;
+        lb_image.setIcon(new ImageIcon(img.getScaledInstance(200, 200, 0)));
         System.out.println("Generation succesful.");
+    }
+    public void paintDivisors(QuadTree ref, BufferedImage canvas, int xstart, int ystart, int xfinish, int yfinish){
+        if(ref.getQ1()!=null){
+            //Paint Divisor
+            for(int i=ystart; i<yfinish; i++){
+                canvas.setRGB(xstart+(xfinish-xstart)/2, i, Color.BLACK.getRGB());
+            }
+            for(int i=ystart; i<yfinish; i++){
+                canvas.setRGB(i, ystart+(yfinish-ystart)/2, Color.BLACK.getRGB());
+            }
+            //Paint Quadrants
+            paintDivisors(ref.getQ1(),canvas,xstart,ystart,xfinish/2,yfinish/2);
+            paintDivisors(ref.getQ2(),canvas,xfinish/2,ystart,xfinish,yfinish/2);
+            paintDivisors(ref.getQ3(),canvas,xstart,yfinish/2,xfinish/2,yfinish);
+            paintDivisors(ref.getQ4(),canvas,xfinish/2,yfinish/2,xfinish,yfinish);
+        }
     }
     //</editor-fold>
     
