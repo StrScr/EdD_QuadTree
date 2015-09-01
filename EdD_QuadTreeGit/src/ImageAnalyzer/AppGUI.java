@@ -1,6 +1,11 @@
+//TODO
+//Fix smallest piece size set <=0 (AKA Sometimes last few depths cause image pieces generation with sizes <=0)
 package ImageAnalyzer;
 import java.awt.Color;
+import java.awt.HeadlessException;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
@@ -162,19 +167,18 @@ public class AppGUI extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(btn_about, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                        .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(cb_filter, javax.swing.GroupLayout.Alignment.LEADING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btn_contourize, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 160, Short.MAX_VALUE)
-                        .addComponent(sp_depth, javax.swing.GroupLayout.Alignment.LEADING))
+                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(cb_filter, 0, 178, Short.MAX_VALUE)
+                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(sp_depth)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel4)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(slider_tolerance, javax.swing.GroupLayout.PREFERRED_SIZE, 126, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, 20, Short.MAX_VALUE))
-                    .addComponent(lb_tolerance, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 20, Short.MAX_VALUE))
+                    .addComponent(lb_tolerance, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btn_contourize, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -230,6 +234,7 @@ public class AppGUI extends javax.swing.JFrame {
             loader.setAcceptAllFileFilterUsed(false);
             FileFilter filter = new FileNameExtensionFilter("Image Files","png","gif","jpg","jpeg");
             loader.addChoosableFileFilter(filter);
+            loader.setFileHidingEnabled(false);
             if(loader.showOpenDialog(this)==JFileChooser.APPROVE_OPTION){
                 img = ImageIO.read(loader.getSelectedFile());
                 //Create backup Image
@@ -258,16 +263,16 @@ public class AppGUI extends javax.swing.JFrame {
                     }
                     depth++;
                 }
-                sp_depth.setModel(new SpinnerNumberModel(0,0,depth-1,1));
+                sp_depth.setValue(0);
+                sp_depth.setModel(new SpinnerNumberModel(0,0,depth,1));//True depth causing trouble???
                 sp_depth.setEnabled(true);
                 System.out.println("MAX Tree Depth: "+depth+".");
                 System.out.println("Image loaded succesfully.");
             }else{
                 System.out.println("Image load canceled.");
             }
-        }catch(Exception e){
+        }catch(HeadlessException | IOException e){
             System.out.println("IMAGE LOAD ERROR");
-            e.printStackTrace();
         }
     }//GEN-LAST:event_btn_loadActionPerformed
 
@@ -280,37 +285,41 @@ public class AppGUI extends javax.swing.JFrame {
             FileFilter filter = new FileNameExtensionFilter("PNG file","png");
             saver.addChoosableFileFilter(filter);
             if(saver.showSaveDialog(this)==JFileChooser.APPROVE_OPTION){
-                ImageIO.write(img, "png", saver.getSelectedFile());
+                String path = saver.getSelectedFile().getAbsolutePath();
+                if(!path.endsWith(".png")){
+                    path=path.concat(".png");
+                }
+                File fname=new File(path);
+                ImageIO.write(img, "png", fname);
                 System.out.println("Save succesfull.");
             }else{
                 System.out.println("Save canceled.");
             }
-        }catch(Exception e){
+        }catch(HeadlessException | IOException e){
             System.out.println("IMAGE SAVE ERROR");
         }
     }//GEN-LAST:event_btn_saveActionPerformed
 
     private void btn_contourizeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_contourizeActionPerformed
-        System.out.println("Contourizing with tolerance "+slider_tolerance.getValue()+"...");
+        System.out.println("Contourizing with tolerance "+slider_tolerance.getValue()+", depth "+(int)sp_depth.getValue()+"...");
         try{
+            if(settingsChanged){
+                loadBackup();
+                grayify();
+            }
+            settingsChanged=true;
             QuadTree contour = new QuadTree(img);
             contourize(contour,(int)sp_depth.getValue());
             System.out.println("Contourization succesful.");
             generateImage(contour);
         }catch(Exception e){
             System.out.println("CONTOURIZE ERROR");
-            e.printStackTrace();
         }
     }//GEN-LAST:event_btn_contourizeActionPerformed
 
     private void cb_filterItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cb_filterItemStateChanged
         if(img!=null && evt.getStateChange()==1){
-            //Restore From Backup
-            for(int i=0; i<img.getHeight(); i++){
-                for(int j=0; j<img.getWidth(); j++){
-                    img.setRGB(j, i, backup.getRGB(j, i));
-                }
-            }
+            loadBackup();
             //Re-display
             grayify();
             lb_image.setIcon(new ImageIcon(img.getScaledInstance(200, 200, 0)));
@@ -329,7 +338,7 @@ public class AppGUI extends javax.swing.JFrame {
     
     //<editor-fold defaultstate="collapsed" desc="Custom Methods">
     public void grayify(){
-        if(!isGrayscale()){
+        if(true){
             System.out.println("Gray-ifying through "+cb_filter.getSelectedItem().toString()+".");
             Color pixel;
             for(int i=0; i<img.getHeight(); i++){
@@ -360,11 +369,14 @@ public class AppGUI extends javax.swing.JFrame {
                     img.setRGB(j, i, pixel.getRGB());
                 }
             }
-        }else{
+            settingsChanged=false;
+        }/*else{
+            //Doesn't use isGrayscale for efficiency
             System.out.println("Image already in grayscale.");
-        }
+        }*/
     }
     public boolean isGrayscale(){
+        //Unused for efficiency
         boolean isGray=true;
         Color pix;
         for(int i=0; i<img.getHeight(); i++){
@@ -400,88 +412,112 @@ public class AppGUI extends javax.swing.JFrame {
         return min;
     }
     public boolean hasColorChange(BufferedImage quad){
+        //Doesnt use tolerance
         boolean hasChange=false;
-        Color prev=new Color(quad.getRGB(0, 0)), next;
-        int tolerance=slider_tolerance.getValue();
+        Color base=new Color(quad.getRGB(0, 0)), next;
         for(int i=0; i<quad.getHeight(); i++){
             for(int j=0; j<quad.getWidth(); j++){
-                next=new Color(img.getRGB(j, i));
-                if(!(prev.equals(next))){
+                next=new Color(quad.getRGB(j, i));
+                if(!(base.equals(next))){
                     hasChange=true;
-                    i=img.getHeight();
-                    j=img.getWidth();
+                    i=quad.getHeight();
+                    j=quad.getWidth();
                 }
-                prev=next;
             }
         }
-        if(!hasChange){
-            prev=new Color(quad.getRGB(0,0));
-            for(int i=0; i<quad.getWidth(); i++){
-                for(int j=0; j<quad.getHeight(); j++){
-                    next=new Color(img.getRGB(i, j));
-                    if(!(prev.equals(next))){
+        return hasChange;
+    }
+    public boolean hasColorChange2ElectricBoogaloo(BufferedImage quad){
+        boolean hasChange=false;
+        int min=new Color(quad.getRGB(0, 0)).getRed(), max=new Color(quad.getRGB(0, 0)).getRed(), next;
+        for(int i=0; i<quad.getHeight(); i++){
+            for(int j=0; j<quad.getWidth(); j++){
+                next=new Color(quad.getRGB(j, i)).getRed();
+                //Checks current pixel agaist min and max
+                if(next<min){
+                    min=next;
+                    //Detect if changes have gone over tolerance
+                    if((max-min)>slider_tolerance.getValue()){
                         hasChange=true;
-                        i=img.getWidth();
-                        j=img.getHeight();
+                        i=quad.getHeight();
+                        j=quad.getWidth();
                     }
-                    prev=next;
+                }else{
+                    if(next>max){
+                        max=next;
+                        if((max-min)>slider_tolerance.getValue()){
+                            hasChange=true;
+                            i=quad.getHeight();
+                            j=quad.getWidth();
+                        }
+                    }
                 }
             }
         }
         return hasChange;
     }
     public void contourize(QuadTree quad, int levels){
-        if(hasColorChange(quad.getQuadrant()) && levels>0){
-            //Determine Quadrant Dimensions
-            int x=quad.getQuadrant().getWidth(),y=quad.getQuadrant().getHeight();
-            if(x%2==0){
-                x/=2;
+        if(levels>0){
+            boolean hasChange;
+            if(slider_tolerance.getValue()==0){
+                hasChange=hasColorChange(quad.getQuadrant());
             }else{
-                x=(x/2)-1;
+                hasChange=hasColorChange2ElectricBoogaloo(quad.getQuadrant());
             }
-            if(y%2==0){
-                y/=2;
-            }else{
-                y=(y/2)-1;
-            }
-            //Make Top Left Quadrant
-            BufferedImage curImg;
-            quad.setQ1(new QuadTree(new BufferedImage(x,y,BufferedImage.TYPE_INT_RGB)));
-            curImg=quad.getQ1().getQuadrant();
-            for(int i=0; i<y; i++){
-                for(int j=0; j<x; j++){
-                    curImg.setRGB(j, i, quad.getQuadrant().getRGB(j, i));
+            if(hasChange){
+                //Determine Quadrant Dimensions
+                int x=quad.getQuadrant().getWidth(),y=quad.getQuadrant().getHeight();
+                if(x%2==0){
+                    x/=2;
+                }else{
+                    x=(x/2)-1;
                 }
-            }
-            //Make Top Right Quadrant
-            quad.setQ2(new QuadTree(new BufferedImage(x,y,BufferedImage.TYPE_INT_RGB)));
-            curImg=quad.getQ2().getQuadrant();
-            for(int i=0; i<y; i++){
-                for(int j=0; j<x; j++){
-                    curImg.setRGB(j, i, quad.getQuadrant().getRGB((x/2)+j, i));
+                if(y%2==0){
+                    y/=2;
+                }else{
+                    y=(y/2)-1;
                 }
-            }
-            //Make Bottom Left Quadrant
-            quad.setQ3(new QuadTree(new BufferedImage(x,y,BufferedImage.TYPE_INT_RGB)));
-            curImg=quad.getQ3().getQuadrant();
-            for(int i=0; i<y; i++){
-                for(int j=0; j<x; j++){
-                    curImg.setRGB(j, i, quad.getQuadrant().getRGB(j, (y/2)+i));
+                //Make Top Left Quadrant
+                BufferedImage curImg;
+                quad.setQ1(new QuadTree(new BufferedImage(x,y,BufferedImage.TYPE_INT_RGB)));
+                curImg=quad.getQ1().getQuadrant();
+                for(int i=0; i<y; i++){
+                    for(int j=0; j<x; j++){
+                        curImg.setRGB(j, i, quad.getQuadrant().getRGB(j, i));
+                    }
                 }
-            }
-            //Make Bottom Right Quadrant
-            quad.setQ4(new QuadTree(new BufferedImage(x,y,BufferedImage.TYPE_INT_RGB)));
-            curImg=quad.getQ4().getQuadrant();
-            for(int i=0; i<y; i++){
-                for(int j=0; j<x; j++){
-                    curImg.setRGB(j, i, quad.getQuadrant().getRGB((x/2)+j, (y/2)+i));
+                //Make Top Right Quadrant
+                quad.setQ2(new QuadTree(new BufferedImage(x,y,BufferedImage.TYPE_INT_RGB)));
+                curImg=quad.getQ2().getQuadrant();
+                for(int i=0; i<y; i++){
+                    for(int j=0; j<x; j++){
+                        curImg.setRGB(j, i, quad.getQuadrant().getRGB((quad.getQuadrant().getWidth()/2)+j, i));
+                    }
                 }
+                //Make Bottom Left Quadrant
+                quad.setQ3(new QuadTree(new BufferedImage(x,y,BufferedImage.TYPE_INT_RGB)));
+                curImg=quad.getQ3().getQuadrant();
+                for(int i=0; i<y; i++){
+                    for(int j=0; j<x; j++){
+                        curImg.setRGB(j, i, quad.getQuadrant().getRGB(j, (quad.getQuadrant().getHeight()/2)+i));
+                    }
+                }
+                //Make Bottom Right Quadrant
+                quad.setQ4(new QuadTree(new BufferedImage(x,y,BufferedImage.TYPE_INT_RGB)));
+                curImg=quad.getQ4().getQuadrant();
+                for(int i=0; i<y; i++){
+                    for(int j=0; j<x; j++){
+                        curImg.setRGB(j, i, quad.getQuadrant().getRGB((quad.getQuadrant().getWidth()/2)+j, (quad.getQuadrant().getHeight()/2)+i));
+                    }
+                }
+                //Erase image in quad
+                quad.setQuadrant(null);
+                //Contourize Quadrants
+                contourize(quad.getQ1(),levels-1);
+                contourize(quad.getQ2(),levels-1);
+                contourize(quad.getQ3(),levels-1);
+                contourize(quad.getQ4(),levels-1);
             }
-            //Contourize Quadrants
-            contourize(quad.getQ1(),levels-1);
-            contourize(quad.getQ2(),levels-1);
-            contourize(quad.getQ3(),levels-1);
-            contourize(quad.getQ4(),levels-1);
         }
     }
     public void generateImage(QuadTree contour){
@@ -510,7 +546,7 @@ public class AppGUI extends javax.swing.JFrame {
         System.out.println("Resulting image size: "+Rwidth+"x"+Rheight+".");
         //Build Image
         System.out.println("Bulding Image...");
-        BufferedImage build=new BufferedImage(Rwidth,Rheight,BufferedImage.TYPE_INT_RGB);
+        BufferedImage build=new BufferedImage(Rwidth,Rheight,BufferedImage.TYPE_BYTE_BINARY);
         for(int g=0; g<Rheight; g++){
             for(int h=0; h<Rwidth; h++){
                 build.setRGB(h, g, Color.white.getRGB());
@@ -536,6 +572,16 @@ public class AppGUI extends javax.swing.JFrame {
             paintDivisors(ref.getQ2(),canvas,xstart+(xfinish-xstart)/2,ystart,xfinish,ystart+(yfinish-ystart)/2);
             paintDivisors(ref.getQ3(),canvas,xstart,ystart+(yfinish-ystart)/2,xstart+(xfinish-xstart)/2,yfinish);
             paintDivisors(ref.getQ4(),canvas,xstart+(xfinish-xstart)/2,ystart+(yfinish-ystart)/2,xfinish,yfinish);
+        }
+    }
+    public void loadBackup(){
+        //Restore From Backup
+        System.out.println("Restoring image from backup...");
+        img=new BufferedImage(backup.getWidth(),backup.getHeight(),BufferedImage.TYPE_INT_RGB);
+        for(int i=0; i<img.getHeight(); i++){
+            for(int j=0; j<img.getWidth(); j++){
+                img.setRGB(j, i, backup.getRGB(j, i));
+            }
         }
     }
     //</editor-fold>
@@ -598,5 +644,6 @@ public class AppGUI extends javax.swing.JFrame {
     //<editor-fold defaultstate="collapsed" desc="Custom Variables">
     BufferedImage img;
     BufferedImage backup;
+    boolean settingsChanged;
     //</editor-fold>
 }
